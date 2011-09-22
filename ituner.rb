@@ -17,7 +17,7 @@ class Track
   def artwork
     a = @track.artworks.get.first
     return nil if a.nil?
-    @artwork ||= Artwork.new(a.format.get, a.data_.get.data)    
+    @artwork ||= Artwork.new(a.format.get, a.raw_data.get.data)    
   end  
     
 end
