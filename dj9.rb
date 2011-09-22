@@ -32,8 +32,6 @@ get '/track/:id/art' do
   id = params[:id]
   # etag(id) unless (id == 'current') # Yes - the Etag is the ID. We don't expect the artwork to really change  
   track = (id.nil? || id == 'current') ? ituner.now_playing : ituner.track(id)
-  puts track.inspect
-  puts track.artwork.inspect  
   (track.nil? || track.artwork.nil?) ? File.open(File.dirname(__FILE__) + '/public/pixel.png', 'rb').read : track.artwork.data
 end
 
