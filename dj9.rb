@@ -1,18 +1,43 @@
 require 'sinatra'
+
+require 'openssl'
 require_relative 'ituner'
 
-ituner = Ituner.new
+ituner = Ituner.new.think
 
-# Serve the pages
+# Homepage
 get '/' do
-  current = ituner.now_playing
-  # current = ituner.track(current.id)
-  "Well Hello. iTunes is currently playing #{current.id} - #{current.name}. Artwork is #{current.artwork.format}" +
-  "<img src='/art/1'/>"
+  @current = ituner.now_playing
+  @current_id = @current.nil? ? '' : @current.id
+  @seq = ituner.sequence
+  haml :index
 end
 
-get '/art/:id' do
+# Advance to the next DJ
+get '/advance' do
+  ituner.advance
+  redirect '/'
+end
+
+# Next track
+get '/next' do
+  ituner.next
+  redirect '/'
+end
+
+# Track Art
+get '/track/:id/art' do
   content_type 'image/png'
-  track = ituner.now_playing
-  track.artwork.data
+  id = params[:id]
+  # etag(id) unless (id == 'current') # Yes - the Etag is the ID. We don't expect the artwork to really change  
+  track = (id.nil? || id == 'current') ? ituner.now_playing : ituner.track(id)
+  (track.nil? || track.artwork.nil?) ? File.open(File.dirname(__FILE__) + '/public/pixel.png', 'rb').read : track.artwork.data
+end
+
+# Start a thread to keep things ticking over
+Thread.new do
+  while true
+    ituner.think
+    sleep 5
+  end
 end

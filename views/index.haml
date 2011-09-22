@@ -1,0 +1,42 @@
+!!!html
+%html
+  %head
+    %title Dee Jay Nine
+    %link{href: '/reset.css', media: 'screen', rel: 'stylesheet', type: 'text/css'}
+    %link{href: '/dj9.css', media: 'screen', rel: 'stylesheet', type: 'text/css'}
+  
+  %body
+  
+    %div#page.container              
+      
+      %div.controls
+        %p Welcome
+        %span DJ9*
+        %a{href: '/next'} &rarr; next      
+        %a{href: '/advance'} &rArr; advance
+      
+      - @seq.each do |dj|
+          
+        -# Display the DJ
+        - name = dj.name.split(' ').first.split("’s").first.upcase
+        - name = 'STEVE' if name == 'LIBRARY'        
+        - color = OpenSSL::Digest::MD5.hexdigest(name)[0..5] 
+          
+        - textcolor = color.scan(/.{2}/).map { |v| "%02x" % [(v.hex * 0.9), 255].min }.join
+      
+        %div.dj{style: "background: ##{color};"}= name
+        
+        - # Display the DJ track
+        - dj.tracks.each do |track|
+          - name = track.name
+          %div.track{class: track.id == @current_id ? 'playing' : '', style: "background: ##{color};", title: name}
+            
+            %span{style: "color: ##{textcolor};"}= name
+            
+            %img{src: "/track/#{track.id}/art", height: 160, width: 160}
+      
+      %div.controls
+        %span *DJ9
+        %a{href: '/next'} &rarr; next      
+        %a{href: '/advance'} &rArr; advance
+        %p Goodbye
