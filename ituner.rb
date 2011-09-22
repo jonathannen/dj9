@@ -164,7 +164,8 @@ class ITuneJockey10_5
       name = row.static_texts[1].name.get
       break if ['GENIUS', 'PLAYLISTS'].include?(name)
       results = [] if name == 'SHARED'
-      results << NamedWidget.new(name, row) if !results.nil? && name =~ /.*\sLibrary\z/ 
+      next if name == 'Home Sharing'
+      results << NamedWidget.new(name, row) if !results.nil?
     end
     return results    
   end
