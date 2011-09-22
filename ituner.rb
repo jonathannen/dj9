@@ -4,11 +4,14 @@ require_relative 'persist'
 # Representation of an iTunes Track
 Artwork = Struct.new("Artwork", :format, :data)
 class Track
-  attr_reader :id, :name
+  VARIABLES = :name, :time, :artist, :album
+  attr_reader :id
+  attr_reader *VARIABLES
+  
   def initialize(track)
     @track = track
     @id = track.persistent_ID.get
-    @name = track.name.get
+    VARIABLES.each { |v| self.instance_variable_set("@#{v}".to_sym, track.send(v.to_sym).get) }
   end
   
   def artwork
@@ -16,10 +19,20 @@ class Track
     return nil if a.nil?
     @artwork ||= Artwork.new(a.format.get, a.data_.get.data)    
   end  
+    
 end
 
 # Named Widgets
-Deejay = Struct.new("Deejay", :index, :id, :name, :playlists, :tracks)
+class Deejay < Struct.new("Deejay", :index, :id, :name, :playlists, :tracks)
+  def time
+    times = tracks.map { |t| t.time.split(':') }
+    mins = times.map { |t| t[0].to_i }.inject(0, &:+)
+    secs = times.map { |t| t[1].to_i }.inject(0, &:+)
+    mins += secs / 60
+    secs = secs % 60
+    "#{mins}:#{secs}"
+  end
+end
 NamedWidget = Struct.new("NamedWidget", :name, :widget)
 
 # iTunes Controller
@@ -32,6 +45,7 @@ class Ituner
     @host = Appscript.app('iTunes')
     @host.run
     @jockey = ITuneJockey10_5.new(@host)
+    @current = nil
     @state = :run    
   end
   
@@ -44,12 +58,12 @@ class Ituner
   def advance(record = true)
     return if @sequence.nil? || @sequence.empty?
     if record
-      current = @sequence.first
+      current = @current || @sequence.first
       data = load
       data[current.id] = Time.now.utc
       save(data)
     end
-    upcoming = @sequence.rotate!(1).first
+    @current = upcoming = @sequence.rotate!(1).first
     return if upcoming.nil?
     host.play upcoming.playlists.first, once: true
   end
@@ -69,10 +83,6 @@ class Ituner
     result.sort_by! { |dj| (data[dj.id] = data[dj.id] || dj.index).to_i }
     save(data)
     result
-  end
-  
-  def start
-    host.play sequence.first.playlists.first, once: true
   end
   
   def filter(playlists)
@@ -111,7 +121,14 @@ class Ituner
   def think
     verify_sources
     @sequence = deejays
-    advance if (@state == :run) && !playing?
+    
+    if playing?
+      current_id = now_playing.id
+      @current = @sequence.find { |dj| dj.tracks.map(&:id).include?(current_id) }
+    else      
+      advance if (@state == :run)
+    end
+    
     return self
   end
   

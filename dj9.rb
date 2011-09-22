@@ -10,6 +10,15 @@ get '/' do
   @current = ituner.now_playing
   @current_id = @current.nil? ? '' : @current.id
   @seq = ituner.sequence
+  
+  # Find the current in the index and add to the start
+  # unless @current.nil?
+  #   active = @seq.find { |dj| dj.tracks.map(&:id).include?(@current_id) }
+  #   if active 
+  #     @seq.insert(0, @seq.delete(active))
+  #   end
+  # end
+  
   haml :index
 end
 
@@ -29,7 +38,7 @@ end
 get '/track/:id/art' do
   content_type 'image/png'
   id = params[:id]
-  # etag(id) unless (id == 'current') # Yes - the Etag is the ID. We don't expect the artwork to really change  
+  etag(id) unless (id == 'current') # Yes - the Etag is the ID. We don't expect the artwork to really change  
   track = (id.nil? || id == 'current') ? ituner.now_playing : ituner.track(id)
   (track.nil? || track.artwork.nil?) ? File.open(File.dirname(__FILE__) + '/public/pixel.png', 'rb').read : track.artwork.data
 end
@@ -37,7 +46,10 @@ end
 # Start a thread to keep things ticking over
 Thread.new do
   while true
-    ituner.think
+    begin
+      ituner.think
+    rescue
+    end
     sleep 5
   end
 end
