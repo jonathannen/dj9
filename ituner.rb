@@ -150,30 +150,33 @@ class Ituner
       # puts @sequence.map(&:tracks).flatten.inspect
       print 'Caching artwork: '
       @sequence.map(&:tracks).flatten.each do |track|
-        filename = artwork_directory + "/#{track.id}.png"
-        thumb = artwork_directory + "/#{track.id}_160x160.png"
-        next if File.exists?(thumb)        
-        next if track.artwork.nil?
-        data = track.artwork.data
-        next if data.nil?
+        begin
+          filename = artwork_directory + "/#{track.id}.png"
+          thumb = artwork_directory + "/#{track.id}_160x160.png"
+          next if File.exists?(thumb)        
+          next if track.artwork.nil?
+          data = track.artwork.data
+          next if data.nil?
 
-        file = File.open(filename, 'wb')
-        file.write(data)
-        file.close
-        
-        if track.artwork.format.to_s =~ /PNG/        
-          print '.'
-          # Plus a thumb
-          png = ChunkyPNG::Image.from_datastream(ChunkyPNG::Datastream.from_blob(data))
-          png.resample_nearest_neighbor!(160, 160)
-          png.save(thumb)
-        else
-          print 'x'
-          file = File.open(thumb, 'wb')
+          file = File.open(filename, 'wb')
           file.write(data)
           file.close
-        end          
         
+          if track.artwork.format.to_s =~ /PNG/        
+            print '.'
+            # Plus a thumb
+            png = ChunkyPNG::Image.from_datastream(ChunkyPNG::Datastream.from_blob(data))
+            png.resample_nearest_neighbor!(160, 160)
+            png.save(thumb)
+          else
+            print '-'
+            file = File.open(thumb, 'wb')
+            file.write(data)
+            file.close
+          end          
+        rescue StandardError => e
+          print 'x'
+        end
         STDOUT.flush
       end
       puts " Done"

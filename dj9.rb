@@ -46,6 +46,6 @@ Thread.new do
     rescue StandardError => e
       puts "ERROR: " + e.inspect
     end
-    sleep 5
+    sleep 10
   end
 end
