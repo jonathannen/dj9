@@ -19,6 +19,11 @@ class Track
     return nil if a.nil?
     @artwork ||= Artwork.new(a.format.get, a.raw_data.get.data)    
   end  
+  
+  def artwork?
+    a = @track.artworks.get.first
+    return !a.nil?
+  end
     
 end
 
@@ -162,7 +167,7 @@ class Ituner
   
   protected
   def artwork_directory
-    tmp = File.dirname(__FILE__) + '/tmp'
+    tmp = File.dirname(__FILE__) + '/public/art'
     FileUtils.mkdir_p tmp
     tmp
   end
