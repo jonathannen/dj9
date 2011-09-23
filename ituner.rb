@@ -22,10 +22,10 @@ class Track
   end  
   
   def artwork?
-    a = @track.artworks.get.first
-    return !a.nil?
+    filename = File.dirname(__FILE__) + "/public/art/#{self.id}_160x160.png"
+    File.exists?(filename)
   end
-    
+  
 end
 
 # Named Widgets
@@ -131,12 +131,7 @@ class Ituner
     file.close
     return data
   end
-  
-  def artwork?
-    filename = artwork_directory + "/#{track_id}_160x160.png"
-    File.exists?(filename)
-  end
-  
+
   # Called to assess the player state and act as necessary
   # Generally a background thread will call this periodically
   def think(cache = true)
