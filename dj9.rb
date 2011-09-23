@@ -40,8 +40,11 @@ end
 Thread.new do
   while true
     begin
+      print "think? "
+      STDOUT.flush
       ituner.think
-    rescue
+    rescue StandardError => e
+      puts "ERROR: " + e.inspect
     end
     sleep 5
   end
