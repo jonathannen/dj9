@@ -10,7 +10,6 @@ get '/' do
   @current = ituner.now_playing
   @current_id = @current.nil? ? '' : @current.id
   @seq = ituner.sequence
-  puts "!!!!!"
   haml :index
 end
 
@@ -30,9 +29,10 @@ end
 get '/track/:id/art' do
   content_type 'image/png'
   id = params[:id]
-  etag(id) unless (id == 'current') # Yes - the Etag is the ID. We don't expect the artwork to really change  
-  track = (id.nil? || id == 'current') ? ituner.now_playing : ituner.track(id)
-  (track.nil? || track.artwork.nil?) ? File.open(File.dirname(__FILE__) + '/public/pixel.png', 'rb').read : track.artwork.data
+  id = ituner.now_playing.id if (id == 'current')
+  data = ituner.artwork(id)
+  data = File.open(File.dirname(__FILE__) + '/public/pixel.png', 'rb').read if data.nil?
+  return data
 end
 
 # Start a thread to keep things ticking over

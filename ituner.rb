@@ -117,8 +117,18 @@ class Ituner
     return nil
   end
   
-  # -- Called to assess the player state
-  def think
+  def artwork(track_id)
+    filename = artwork_directory + "/#{track_id}.png"
+    return nil unless File.exists?(filename)
+    file = File.open(filename, 'rb')
+    data = file.read
+    file.close
+    return data
+  end
+  
+  # Called to assess the player state and act as necessary
+  # Generally a background thread will call this periodically
+  def think(cache = true)
     verify_sources
     @sequence = deejays
     
@@ -129,10 +139,34 @@ class Ituner
       advance if (@state == :run)
     end
     
+    # Cache images if available - and they exist
+    if cache      
+      # puts @sequence.map(&:tracks).flatten.inspect
+      print 'Caching artwork: '
+      @sequence.map(&:tracks).flatten.each do |track|
+        filename = artwork_directory + "/#{track.id}.png"
+        next if File.exists?(filename)
+        data = track.artwork.data
+        next if data.nil?
+        print '.'
+        STDOUT.flush
+        file = File.open(filename, 'wb')
+        file.write(data)
+        file.close
+      end
+      puts " Done"
+    end
+    
     return self
   end
   
   protected
+  def artwork_directory
+    tmp = File.dirname(__FILE__) + '/tmp'
+    FileUtils.mkdir_p tmp
+    tmp
+  end
+  
   def verify_sources
     # Shared Libaries available via AppleScript
     libraries = host.sources[Appscript.its.kind.eq(:shared_library)].get
