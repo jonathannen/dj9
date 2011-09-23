@@ -34,10 +34,7 @@
           %div.track{class: track.id == @current_id ? 'playing' : '', style: "background: ##{color};", title: "#{name} -of- #{track.album} -by- #{track.artist}"}
             
             %span{style: "color: ##{textcolor};"}= name   
-            - if track.artwork? 
-              %img{src: "/art/#{track.id}_160x160.png", height: 160, width: 160}
-            - else
-              %img{src: "/pixel.png", height: 160, width: 160}
+            %img{src: track.artwork_path, height: 160, width: 160}
             
       %div.controls
         %span *DJ9

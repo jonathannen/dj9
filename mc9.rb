@@ -10,9 +10,11 @@ class Mc9
     
     def run!
       Thread.new do
+        counter = 0
         @running = true
         while @running 
-          self.scan
+          self.scan(true) #counter == 0)
+          counter = counter > 5 ? 0 : counter + 1
           sleep 5
         end
         true
@@ -24,10 +26,10 @@ class Mc9
     end
     
     protected    
-    def scan
+    def scan(cache)
       begin
-        self.ituner.think
-      rescue StandardError => se       
+        self.ituner.think(cache)
+      rescue StandardException => se       
         STDERR.puts case se.error_number
         when -1719 then "ERROR: Can't connect to iTunes. You need enable 'Access for assistive devices'. Head to System Preferences > Universal Access, then select 'Enable access for assistive devices'."
         else  "MC9.ERROR: #{se}"

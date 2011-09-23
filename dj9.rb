@@ -28,17 +28,7 @@ class Dj9 < Sinatra::Base
     ituner.next
     redirect '/'
   end
-
-  # Track Art
-  get '/track/:id/art' do
-    content_type 'image/png'
-    id = params[:id]
-    id = ituner.now_playing.id if (id == 'current')
-    data = ituner.artwork(id)
-    etag data.length.to_s unless data.nil?
-    data = File.open(File.dirname(__FILE__) + '/public/pixel.png', 'rb').read if data.nil?
-    return data
-  end
+  
 end
 
 # Kick off the back, then kick off the front
