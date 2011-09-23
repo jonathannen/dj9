@@ -1,51 +1,46 @@
-require 'sinatra'
-
+require 'sinatra/base'
 require 'openssl'
 require_relative 'ituner'
+require_relative 'mc9'
 
-ituner = Ituner.new.think(false)
+# The Sinatra Web Front End
+class Dj9 < Sinatra::Base
+  
+  set :public, File.dirname(__FILE__) + '/public'
+  def ituner; Mc9.ituner; end
+  
+  # Homepage
+  get '/' do
+    @current = ituner.now_playing
+    @current_id = @current.nil? ? '' : @current.id
+    @seq = ituner.sequence
+    haml :index
+  end
 
-# Homepage
-get '/' do
-  @current = ituner.now_playing
-  @current_id = @current.nil? ? '' : @current.id
-  @seq = ituner.sequence
-  haml :index
-end
+  # Advance to the next DJ
+  get '/advance' do
+    ituner.advance
+    redirect '/'
+  end
 
-# Advance to the next DJ
-get '/advance' do
-  ituner.advance
-  redirect '/'
-end
+  # Next track
+  get '/next' do
+    ituner.next
+    redirect '/'
+  end
 
-# Next track
-get '/next' do
-  ituner.next
-  redirect '/'
-end
-
-# Track Art
-get '/track/:id/art' do
-  content_type 'image/png'
-  id = params[:id]
-  id = ituner.now_playing.id if (id == 'current')
-  data = ituner.artwork(id)
-  etag data.length.to_s unless data.nil?
-  data = File.open(File.dirname(__FILE__) + '/public/pixel.png', 'rb').read if data.nil?
-  return data
-end
-
-# Start a thread to keep things ticking over
-Thread.new do
-  while true
-    begin
-      print "think? "
-      STDOUT.flush
-      ituner.think
-    rescue StandardError => e
-      puts "ERROR: " + e.inspect
-    end
-    sleep 10
+  # Track Art
+  get '/track/:id/art' do
+    content_type 'image/png'
+    id = params[:id]
+    id = ituner.now_playing.id if (id == 'current')
+    data = ituner.artwork(id)
+    etag data.length.to_s unless data.nil?
+    data = File.open(File.dirname(__FILE__) + '/public/pixel.png', 'rb').read if data.nil?
+    return data
   end
 end
+
+# Kick off the back, then kick off the front
+Mc9.run!
+Dj9.run! if ($0 == __FILE__) # Run if this is from the command line

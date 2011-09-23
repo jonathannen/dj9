@@ -36,7 +36,7 @@ class Deejay < Struct.new("Deejay", :index, :id, :name, :playlists, :tracks)
     secs = times.map { |t| t[1].to_i }.inject(0, &:+)
     mins += secs / 60
     secs = secs % 60
-    "#{mins}:#{secs}"
+    "#{'%02d' % mins}:#{'%02d' % secs}"
   end
 end
 NamedWidget = Struct.new("NamedWidget", :name, :widget)
@@ -224,7 +224,8 @@ class ITuneJockey10_5
       break if ['GENIUS', 'PLAYLISTS'].include?(name)
       results = [] if name == 'SHARED'
       next if ['SHARED', 'Home Sharing'].include?(name)
-      results << NamedWidget.new(name, row) if !results.nil?
+      
+      results << NamedWidget.new(name, row) unless results.nil?
     end
     return results    
   end

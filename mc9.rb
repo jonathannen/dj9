@@ -1,0 +1,40 @@
+# Master of Ceremonies - Controls the background thread that keeps
+# everything ticking over.
+class Mc9
+  
+  class << self
+    
+    def ituner
+      @ituner ||= Ituner.new.think(false)
+    end
+    
+    def run!
+      Thread.new do
+        @running = true
+        while @running 
+          self.scan
+          sleep 5
+        end
+        true
+      end
+    end
+    
+    def stop
+      @running = false
+    end
+    
+    protected    
+    def scan
+      begin
+        self.ituner.think
+      rescue StandardError => se       
+        STDERR.puts case se.error_number
+        when -1719 then "ERROR: Can't connect to iTunes. You need enable 'Access for assistive devices'. Head to System Preferences > Universal Access, then select 'Enable access for assistive devices'."
+        else  "MC9.ERROR: #{se}"
+        end
+      end
+    end
+
+  end
+
+end
