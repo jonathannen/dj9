@@ -3,7 +3,7 @@ require 'sinatra'
 require 'openssl'
 require_relative 'ituner'
 
-ituner = Ituner.new.think
+ituner = Ituner.new.think(false)
 
 # Homepage
 get '/' do

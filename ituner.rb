@@ -1,4 +1,5 @@
 require 'appscript'
+require 'chunky_png'
 require_relative 'persist'
 
 # Representation of an iTunes Track
@@ -123,12 +124,17 @@ class Ituner
   end
   
   def artwork(track_id)
-    filename = artwork_directory + "/#{track_id}.png"
+    filename = artwork_directory + "/#{track_id}_160x160.png"
     return nil unless File.exists?(filename)
     file = File.open(filename, 'rb')
     data = file.read
     file.close
     return data
+  end
+  
+  def artwork?
+    filename = artwork_directory + "/#{track_id}_160x160.png"
+    File.exists?(filename)
   end
   
   # Called to assess the player state and act as necessary
@@ -151,6 +157,7 @@ class Ituner
       @sequence.map(&:tracks).flatten.each do |track|
         filename = artwork_directory + "/#{track.id}.png"
         next if File.exists?(filename)
+        next if track.artwork.nil?
         data = track.artwork.data
         next if data.nil?
         print '.'
@@ -158,6 +165,11 @@ class Ituner
         file = File.open(filename, 'wb')
         file.write(data)
         file.close
+        
+        # Plus a thumb
+        png = ChunkyPNG::Image.from_datastream(ChunkyPNG::Datastream.from_blob(data))
+        png.resample_nearest_neighbor!(160, 160)
+        png.save(artwork_directory + "/#{track.id}_160x160.png")
       end
       puts " Done"
     end
