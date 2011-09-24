@@ -78,6 +78,20 @@ class Ituner
     return nil unless playing?
     Track.new(host.current_track.get)
   end
+  
+  def state
+    @state
+  end
+  
+  def stop
+    @state == :stop
+    @host.stop
+  end
+  
+  def start
+    @state == :run
+    @host.play
+  end
 
   # Called to assess the player state and act as necessary
   # Generally a background thread will call this periodically

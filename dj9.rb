@@ -29,6 +29,17 @@ class Dj9 < Sinatra::Base
     ituner.next
     redirect '/'
   end
+
+  # Stop
+  get '/start' do
+    ituner.start
+  end
+  
+  # Stop
+  get '/stop' do
+    ituner.stop
+  end
+  
 end
 
 # Kick off the back, then kick off the front
