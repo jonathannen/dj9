@@ -1,3 +1,5 @@
+require 'base64'
+
 # A
 # Representation of an iTunes Track
 Artwork = Struct.new("Artwork", :format, :data)
@@ -21,7 +23,7 @@ PlayRecord = Struct.new("PlayRecord", :id, :last, :index)
 # T
 # Track
 class Track
-  VARIABLES = :name, :time, :artist, :album
+  VARIABLES = :name, :time, :artist, :album, :album_artist
   attr_reader :id
   attr_reader *VARIABLES
   
@@ -46,19 +48,46 @@ class Track
   end
   
   def artwork?
-    filename = File.dirname(__FILE__) + "/public/art/#{self.id}_160x160.png"
+    filename = File.dirname(__FILE__) + "/public/art/T#{self.id}_160x160.png"
     File.exists?(filename)
   end
   
   def artwork_path
-    artwork? ? "/art/#{self.id}_160x160.png" : '/pixel.png'
+    artwork? ? "/art/T#{self.id}_160x160.png" : '/pixel.png'
   end  
+  
+  def album_artwork?
+    filename = File.dirname(__FILE__) + "/public/art/A#{album_artwork_name}_160x160.png"
+    File.exists?(filename)
+  end
+  
+  def album_artwork_path
+    album_artwork? ? "/art/A#{album_artwork_name}_160x160.png" : '/pixel.png'
+  end
+  
+  def album_artwork_name
+    Base64.urlsafe_encode64("#{self.artist}-#{self.album}")
+  end
   
   # Cache the artwork. Currently only handles PNG versions
   def cache_artwork
-    filename = Track.artwork_directory + "/#{self.id}.png"
-    thumb = Track.artwork_directory + "/#{self.id}_160x160.png"    
+    filename = Track.artwork_directory + "/T#{self.id}.png"
+    thumb = Track.artwork_directory + "/T#{self.id}_160x160.png"    
     data = self.artwork.data
+        
+    # Write the track level data
+    write_artwork(data, filename, thumb)
+    # Also write the album data
+    write_artwork(data, Track.artwork_directory + "/A#{album_artwork_name}.png", Track.artwork_directory + "/A#{album_artwork_name}_160x160.png" )    
+    return thumb
+  end
+  
+  def self.artwork_directory
+    File.dirname(__FILE__) + "/public/art"
+  end
+  
+  protected
+  def write_artwork(data, filename, thumb)
     # The raw data as a PNG file
     File.open(filename, 'wb') { |f| f.write(data) }
 
@@ -68,11 +97,6 @@ class Track
     else
       File.open(thumb, 'wb') { |f| f.write(data) }      
     end
-    return thumb
-  end
-  
-  def self.artwork_directory
-    File.dirname(__FILE__) + "/public/art"
   end
   
 end

@@ -14,7 +14,7 @@ class Mc9
         counter = 0
         @running = true
         while @running 
-          self.scan(counter == 4) # Scan, performing the asset cache every ~5 times
+          self.scan(counter == 0) # Scan, performing the asset cache every ~5 times
           counter = counter > 4 ? 0 : counter + 1
           sleep 5
         end
