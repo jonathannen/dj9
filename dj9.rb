@@ -14,34 +14,42 @@ class Dj9 < Sinatra::Base
   get '/' do
     @current = ituner.now_playing
     @current_id = @current.nil? ? '' : @current.id
-    @seq = ituner.sequence
+    @state = ituner.state
+    
+    @seq = ituner.sequence.clone
+    @current_dj = ituner.current_dj
+    unless @current_dj.nil?
+      @seq.delete(@current_dj)
+      @seq.unshift(@current_dj)
+    end
+    
     haml :index
   end
 
   # Advance to the next DJ
   get '/advance' do
-    ituner.advance
+    ituner.safely { ituner.advance }
     redirect '/'
   end
 
   # Next track
   get '/next' do
-    ituner.next
+    ituner.safely { ituner.next }
     redirect '/'
   end
 
-  # Stop
-  get '/start' do
-    ituner.start
+  # Run
+  get '/run' do
+    ituner.safely { ituner.start }
+    redirect '/'
   end
   
   # Stop
-  get '/stop' do
-    ituner.stop
+  get '/pause' do
+    ituner.safely { ituner.stop }
+    redirect '/'
   end
   
 end
 
-# Kick off the back, then kick off the front
-Mc9.run!
-Dj9.run! if ($0 == __FILE__) # Run if this is from the command line
+Dj9.run! if __FILE__ == $0

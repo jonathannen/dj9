@@ -12,6 +12,12 @@
       %div.controls
         %p Welcome
         %span DJ9*
+      %div.controls
+        - if @state == :run || !@current.nil?
+          %a{href: '/pause'} &quot; PAUSE      
+        - else
+          %a{href: '/run'} &gt; RUN      
+          
         %a{href: '/next'} &rarr; next      
         %a{href: '/advance'} &rArr; advance
       
@@ -19,25 +25,24 @@
           
         -# Display the DJ
         - name = dj.name.split(' ').first.split("’s").first.upcase
-        - name = 'STEEEEEVE' if name == 'LIBRARY'        
-        - color = OpenSSL::Digest::MD5.hexdigest(name)[0..5] 
-          
-        - textcolor = color.scan(/.{2}/).map { |v| "%02x" % [(v.hex * 0.9), 255].min }.join
-      
-        %div.dj{style: "background: ##{color};"}
+        - name = 'LOCAL' if name == 'LIBRARY'        
+        - color = OpenSSL::Digest::MD5.hexdigest(name)[0..5]   
+        - textcolor = color.scan(/.{2}/).map { |v| "%02x" % [(v.hex * 0.5), 255].min }.join
+        - style = "background: ##{color}; border-right: 1px solid ##{textcolor}; border-top: 10px solid ##{textcolor};"
+        
+        %div.dj{style: style}
           = name
           %time= dj.time
         
         - # Display the DJ track
         - dj.tracks.each do |track|
           - name = track.name
-          %div.track{class: track.id == @current_id ? 'playing' : '', style: "background: ##{color};", title: "#{name} -of- #{track.album} -by- #{track.artist}"}
+          - style += " color: ##{textcolor};"
+          %div.track{class: track.id == @current_id ? 'playing' : '', style: style, title: "#{name} -of- #{track.album} -by- #{track.artist}"}
             
-            %span{style: "color: ##{textcolor};"}= name   
-            %img{src: track.artwork_path, height: 160, width: 160}
+            %span= name   
+            %img.artwork{src: track.artwork_path, height: 160, width: 160}
             
       %div.controls
         %span *DJ9
-        %a{href: '/next'} &rarr; next      
-        %a{href: '/advance'} &rArr; advance
         %p Goodbye

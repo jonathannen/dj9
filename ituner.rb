@@ -6,7 +6,7 @@ require_relative 'types'
 # iTunes Controller
 class Ituner
   DATABASE_VERSION = 1
-  attr_reader :host, :jockey
+  attr_reader :host, :jockey, :state
   
   def initialize
     @host = Appscript.app('iTunes')
@@ -18,22 +18,24 @@ class Ituner
   
   # -- Playlist and Sources
   # Advance to to the next DJ in the sequence
-  def advance(record = true)
-    return if @sequence.nil? || @sequence.empty?
-
-    current = @current || @sequence.first
-    @current = upcoming = @sequence.rotate!(1).first
-
-    # Record that this DJs has been played
-    @store.transaction { @store[current.id] = PlayRecord.new(current.id, Time.now.utc, 0) } if record
-
+  def advance
+    return if @sequence.nil?
+    upcoming = @sequence.first
     return if upcoming.nil?
+    
+    # Record that this DJ has been played
+    @store.transaction { @store[upcoming.id] = PlayRecord.new(upcoming.id, Time.now.utc, 0) }
+    @sequence = deejays
+    
+    # Queue them up
     host.play upcoming.playlists.first, once: true
   end
   
   # The current DJ
-  def current
-    current_id = now_playing.id
+  def current_dj
+    current_id = now_playing
+    return nil if current_id.nil?
+    current_id = current_id.id
     @current = @sequence.find { |dj| dj.tracks.map(&:id).include?(current_id) }
   end
   
@@ -78,18 +80,14 @@ class Ituner
     return nil unless playing?
     Track.new(host.current_track.get)
   end
-  
-  def state
-    @state
-  end
-  
+
   def stop
-    @state == :stop
+    @state = :stop
     @host.stop
   end
   
   def start
-    @state == :run
+    @state = :run
     @host.play
   end
 
@@ -104,7 +102,17 @@ class Ituner
   end
   
   # Class method to "safely" interact with the iTuner. Will catch and
-  # potentially respond to errors.
+  # potentially respond to errors. Won't catch Exceptions.
+  def safely 
+    begin
+      yield
+    rescue StandardError => se       
+      STDERR.puts case se.error_number
+      when -1719 then "ERROR: Can't connect to iTunes. You need enable 'Access for assistive devices'. Head to System Preferences > Universal Access, then select 'Enable access for assistive devices'."
+      else  "ERROR: #{se}"
+      end
+    end
+  end
   
   protected
   def cache_artwork
@@ -151,23 +159,44 @@ class ITuneJockey10_5
     @host = host
   end 
   def scan
-    @host.run
-    se = Appscript.app('System Events').processes['iTunes'].windows[1].scroll_areas[2].outlines[1].rows.get
+    @host.run # Make sure iTunes is running
+    
+    # Get a handle to scripting events
+    se = Appscript.app('System Events').processes['iTunes']
+    
+    # Is the host minimized? That will break the interaction
+    if @host.browser_windows[1].minimized.get
+      STDOUT.puts "WARN: The iTunes Window was in 'Mini-Player' mode. We're going to maximize it. For best reliability try to keep the big iTunes window Open."
+      @host.browser_windows[1].minimized.set(false)
+    end
+    # Activation a bit annoying, so disabled for now. Suspect
+    # it improves the reliability, however. Might be an option 
+    # for pure server environments.
+    # @host.browser_windows[1].activate 
+    
+    # Get the rows on the splitter window on the left
+    # This contains the "Shared Libaries" that we'll iterate through
+    rows = se.windows[1].scroll_areas[2].outlines[1].rows.get
+    
+    # Go through the rows detecting the rows that represent Shared Libraries
+    # Generally they come after a row named SHARED. They end by GENIUS or
+    # PLAYLISTS. We also need to check that the Shared Library isn't open
+    # as the entries will show up as well (e.g. 'Music' or 'Radio' inside 
+    # 'Steve's Library')
     results = nil    
-    se.each do |row|
+    rows.each do |row|
       name = row.static_texts[1].name.get
       break if ['GENIUS', 'PLAYLISTS'].include?(name)      
       results = [] if name == 'SHARED' 
-      
-      # Skip the headline
       next if ['SHARED', 'Home Sharing'].include?(name)
-      # This line will skip if the actual library is open (has their own "Music", etc, etc tabs in it)
       next unless ['0', '1'].include?(row.attributes['AXDisclosureLevel'].get.value.get.to_s)      
       results << NamedWidget.new(name, row) unless results.nil?
     end
     return results    
   end
   
+  # Called when the iTuner actually wants to activate / turn on this
+  # element.
   def activate(lib)
     lib.widget.select
   end
