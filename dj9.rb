@@ -1,7 +1,8 @@
+# encoding: UTF-8
 require 'sinatra/base'
+require 'haml'
 require 'openssl'
-require_relative 'ituner'
-require_relative 'mc9'
+['types', 'ituner', 'mc9'].each { |req| require_relative req }
 
 # The Sinatra Web Front End
 class Dj9 < Sinatra::Base
@@ -28,11 +29,8 @@ class Dj9 < Sinatra::Base
     ituner.next
     redirect '/'
   end
-  
 end
 
 # Kick off the back, then kick off the front
 Mc9.run!
 Dj9.run! if ($0 == __FILE__) # Run if this is from the command line
-
-Mc9.ituner.think(true)
