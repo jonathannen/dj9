@@ -118,7 +118,7 @@ class Ituner
     # DJ index is a very low number (i.e. < 100). We use it to get a 
     # reasonably consistent sort for new DJs 
     @store.transaction do
-      result.sort_by! { |dj| @store[dj.id][1] || Time.now.utc }
+      result.sort_by! { |dj| (@store[dj.id] || [Time.now.utc,0])[0] }
     end
     result
   end
