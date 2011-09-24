@@ -156,6 +156,9 @@ class Ituner
     return self
   end
   
+  # Class method to "safely" interact with the iTuner. Will catch and
+  # potentially respond to errors.
+  
   protected
   def cache_artwork
     # Cache images if available - and they exist
@@ -186,7 +189,7 @@ class Ituner
     # Make sure everything we expect has been activated
     expected_shared.each do |exp|
       next if available.include?(exp.name)
-      puts "Missing Library #{exp.name}. Going ahead and activating it."
+      puts "Missing \"#{exp.name}\". Going ahead and activating it."
       jockey.activate(exp)
     end
   end

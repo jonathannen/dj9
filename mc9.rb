@@ -34,6 +34,9 @@ class Mc9
         when -1719 then "ERROR: Can't connect to iTunes. You need enable 'Access for assistive devices'. Head to System Preferences > Universal Access, then select 'Enable access for assistive devices'."
         else  "MC9.ERROR: #{se}"
         end
+      rescue Exception => e
+        STDERR.puts "Unrecoverable Exception raised: #{e}"
+        self.stop
       end
     end
 
