@@ -200,11 +200,6 @@ class ITuneJockey10_5
       next unless ['0', '1'].include?(row.attributes['AXDisclosureLevel'].get.value.get.to_s)      
       results << NamedWidget.new(name, row) if triggered
     end
-    
-    # Register the number of shared libraries found
-    print "<#{results.length}>"
-    STDOUT.flush
-    
     return results    
   end
   

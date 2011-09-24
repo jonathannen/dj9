@@ -11,9 +11,9 @@ hr {
 
 div.dj, div.track, div.controls, div.album { 
   float: left; 
-  height: 152px;
+  height: 151px;
   padding: 4px;
-  width: 152px;
+  width: 151px;
   word-break: break-all;
   word-wrap: break-word;
 }
@@ -55,9 +55,9 @@ div.album, div.track {
 img.artwork, div.track span {
   position: absolute;
   left: 0;
-  height: 160px; 
+  height: 159px; 
   top: 0;
-  width: 160px;  
+  width: 159px;  
   overflow-y: hidden;
   z-index: 1;
 }
@@ -98,4 +98,10 @@ div.track.playing img {
 
 div.track:hover img {
   opacity: 1;  
+}
+
+@media only screen and (max-width: 767px) {
+  body { 
+    margin: 0;
+  }
 }

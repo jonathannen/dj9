@@ -34,9 +34,7 @@ class Mc9
     protected    
     def scan(cache)
       begin
-        STDOUT.print "?"
         self.ituner.think(cache)
-        STDOUT.puts "!"
       rescue Appscript::CommandError => ce       
         message = case 
         when (ce.error_number == -1719) && (ce.error_message =~ /assistive devices/) then 
@@ -46,7 +44,7 @@ class Mc9
         end
         STDERR.puts message
       rescue Exception => e
-        STDERR.puts "Unrecoverable Exception raised: #{e}"
+        STDERR.puts "MC9 Bowing out. Unrecoverable Exception raised: #{e.inspect}"
         self.stop
       end
     end
