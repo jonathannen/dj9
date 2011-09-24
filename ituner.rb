@@ -17,9 +17,17 @@ class Track
   end
   
   def artwork
-    a = @track.artworks.get.first
-    return nil if a.nil?
-    @artwork ||= Artwork.new(a.format.get, a.raw_data.get.data)
+    return @artwork unless @artwork.nil?
+    begin
+      art = @track.artworks.get.first
+      return nil if art.nil?
+      @artwork = Artwork.new(art.format.get, art.raw_data.get.data)
+      
+    # Trap and ignore a common AppleScript error
+    rescue Appscript::CommandError => ce
+      return nil if ce.error_number == -4
+      throw ce
+    end
   end
   
   def artwork?
@@ -54,7 +62,7 @@ class Track
   
 end
 
-# Named Widgets
+# A DJ is a shared library on the network (+ the local library)
 class Deejay < Struct.new("Deejay", :index, :id, :name, :playlists, :tracks)
   def time
     times = tracks.map { |t| t.time.split(':') }
@@ -63,24 +71,22 @@ class Deejay < Struct.new("Deejay", :index, :id, :name, :playlists, :tracks)
     "#{'%02d' % (mins + (secs / 60))}:#{'%02d' % (secs % 60)}"
   end
 end
-NamedWidget = Struct.new("NamedWidget", :name, :widget)
+# Named widget on the iTunes UI
+NamedWidget = Struct.new("NamedWidget", :name, :widget)  
+# A saved record of when something was last played
+PlayRecord = Struct.new("PlayRecord", :id, :last, :index)
 
 # iTunes Controller
 class Ituner
-  
+  DATABASE_VERSION = 1
   attr_reader :host, :jockey
   
   def initialize
     @host = Appscript.app('iTunes')
     @host.run
     @jockey = ITuneJockey10_5.new(@host)
-    @store = PStore.new("tmp/data.pstore")
+    @store = PStore.new("tmp/data_#{DATABASE_VERSION}.pstore")
     @state = :run    
-  end
-  
-  def configure
-    @sequence = deejays
-    return self
   end
   
   # -- Playlist and Sources
@@ -92,7 +98,7 @@ class Ituner
     @current = upcoming = @sequence.rotate!(1).first
 
     # Record that this DJs has been played
-    @store.transaction { @store[current.id] = [Time.now.utc, 0] } if record
+    @store.transaction { @store[current.id] = PlayRecord.new(current.id, Time.now.utc, 0) } if record
 
     return if upcoming.nil?
     host.play upcoming.playlists.first, once: true
@@ -117,8 +123,8 @@ class Ituner
     # Sort the DJs by the last time they were played    
     # DJ index is a very low number (i.e. < 100). We use it to get a 
     # reasonably consistent sort for new DJs 
-    @store.transaction do
-      result.sort_by! { |dj| (@store[dj.id] || [Time.now.utc,0])[0] }
+    @store.transaction(true) do
+      result.sort_by! { |dj| @store[dj.id].nil? ? Time.now.utc : @store[dj.id].last }
     end
     result
   end
@@ -171,8 +177,8 @@ class Ituner
     
     print 'Caching artwork: '
     candidates.each do |track|
-      track.cache_artwork
       print '.'
+      track.cache_artwork
       STDOUT.flush
     end
     puts " and we're done!"
@@ -207,10 +213,13 @@ class ITuneJockey10_5
     results = nil    
     se.each do |row|
       name = row.static_texts[1].name.get
-      break if ['GENIUS', 'PLAYLISTS'].include?(name)
-      results = [] if name == 'SHARED'
-      next if ['SHARED', 'Home Sharing'].include?(name)
+      break if ['GENIUS', 'PLAYLISTS'].include?(name)      
+      results = [] if name == 'SHARED' 
       
+      # Skip the headline
+      next if ['SHARED', 'Home Sharing'].include?(name)
+      # This line will skip if the actual library is open (has their own "Music", etc, etc tabs in it)
+      next unless ['0', '1'].include?(row.attributes['AXDisclosureLevel'].get.value.get.to_s)      
       results << NamedWidget.new(name, row) unless results.nil?
     end
     return results    

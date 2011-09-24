@@ -9,12 +9,13 @@ class Mc9
     end
     
     def run!
+      ituner
       Thread.new do
         counter = 0
         @running = true
         while @running 
-          self.scan(true) #counter == 0)
-          counter = counter > 5 ? 0 : counter + 1
+          self.scan(counter == 4) # Scan, performing the asset cache every ~5 times
+          counter = counter > 4 ? 0 : counter + 1
           sleep 5
         end
         true
@@ -28,7 +29,9 @@ class Mc9
     protected    
     def scan(cache)
       begin
+        STDOUT.print "?"
         self.ituner.think(cache)
+        STDOUT.puts "!"
       rescue StandardException => se       
         STDERR.puts case se.error_number
         when -1719 then "ERROR: Can't connect to iTunes. You need enable 'Access for assistive devices'. Head to System Preferences > Universal Access, then select 'Enable access for assistive devices'."

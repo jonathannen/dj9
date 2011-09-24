@@ -34,3 +34,5 @@ end
 # Kick off the back, then kick off the front
 Mc9.run!
 Dj9.run! if ($0 == __FILE__) # Run if this is from the command line
+
+Mc9.ituner.think(true)
