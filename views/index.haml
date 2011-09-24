@@ -26,23 +26,27 @@
       
       - @seq.each do |dj|
           
-        -# Display the DJ
+        -# Display the DJ 
         - name = dj.name.split(' ').first.split("’s").first.upcase
-        - name = 'STEVE9' if name == 'LIBRARY'        
+        - name = 'NATHAN' if name == 'LIBRARY'        
         - color = OpenSSL::Digest::MD5.hexdigest(name)[0..5]   
         - rgb =  color.scan(/.{2}/).map { |v| v.hex }
         - darkcolor = rgb.map { |v| "%02x" % [(v * 0.75), 255].min }.join
         - textcolor = darkcolor
-        - style = "background: ##{color}; border-right: 1px solid ##{darkcolor}; border-top: 10px solid ##{darkcolor};"
-        
+
+        - style = "background: ##{color}; border-right: 1px solid ##{darkcolor}; border-top: 10px solid ##{darkcolor};"        
         %div.dj{:style => style}
-          - style += " color: ##{textcolor};"
-          = name
+          %span
+            DJ 
+            = name
           %time= dj.time
         
         - # Display the DJ track
         - dj.tracks.each do |track|
           - name = track.name
+
+          -# color = rgb.map { |v| "%02x" % [(v * (1 - rand/5)), 255].min }.join
+          - style = "background: ##{color}; border-right: 1px solid ##{darkcolor}; border-top: 10px solid ##{darkcolor}; color: ##{textcolor};"
           %div.track{:class => track.id == @current_id ? 'playing' : '', :style => style, :title => "#{name} -of- #{track.album} -by- #{track.artist}"}
             
             %span= name   

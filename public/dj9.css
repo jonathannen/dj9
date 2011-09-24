@@ -9,10 +9,11 @@ hr {
   height: 0px;
 }
 
-div.dj, div.track, div.controls, div.album { 
+div.album, div.controls, div.dj, div.track { 
   float: left; 
   height: 151px;
   padding: 4px;
+  position: relative;
   width: 151px;
   word-break: break-all;
   word-wrap: break-word;
@@ -34,9 +35,8 @@ div.controls a { color: white; display: block; font-weight: bold; }
 div.controls span { font-size: 60px; }
 
 div.dj { 
-/*  background: black;*/
   color: white;
-  font-size: 52px;
+  font-size: 50px;
   font-weight: bold;
   text-shadow: 1px 1px 0 rgba(255,255,255,0.4), -1px -1px 0 rgba(0,0,0,0.4);
 }
@@ -49,7 +49,6 @@ div.album, div.track {
   font-size: 26px;
   font-weight: bold;
   line-height: 37px;
-  position: relative;
 }
 
 img.artwork, div.track span {
@@ -82,8 +81,10 @@ div.track.playing {
 }
 
 div.track.playing span, div.track:hover span {
-  color: black;
-  text-shadow: 1px  1px 0  rgba(255,255,255,1);
+  color: yellow;
+  text-shadow: 
+    0 0 1px black,
+    1px 1px 0 black;
 }
 
 div.track.playing img {
@@ -98,6 +99,13 @@ div.track.playing img {
 
 div.track:hover img {
   opacity: 1;  
+}
+
+div time {
+  bottom: 5px;
+  position: absolute;
+  right: 5px;
+  text-shadow: 0 1px 0 rgba(255,255,255,1), 0 -1px 0 rgba(0,0,0,1);
 }
 
 @media only screen and (max-width: 767px) {
