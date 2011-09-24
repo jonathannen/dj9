@@ -1,4 +1,5 @@
-['types', 'ituner', 'dj9'].each { |req| require_relative req }
+require 'rubygems'
+['types', 'ituner', 'dj9'].each { |req| require "#{File.dirname(__FILE__)}/#{req}" }
 
 # Master of Ceremonies - Controls the background thread that keeps
 # everything ticking over.
@@ -23,7 +24,7 @@ class Mc9
     
     def run!
       ituner
-      return Thread.new &:exec
+      return Thread.new { self.exec }
     end
     
     def stop

@@ -1,8 +1,9 @@
 # encoding: UTF-8
+require 'rubygems'
 require 'sinatra/base'
 require 'haml'
 require 'openssl'
-['types', 'ituner', 'mc9'].each { |req| require_relative req }
+['types', 'ituner', 'mc9'].each { |req| require "#{File.dirname(__FILE__)}/#{req}" }
 
 # The Sinatra Web Front End
 class Dj9 < Sinatra::Base

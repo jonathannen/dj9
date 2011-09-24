@@ -1,7 +1,6 @@
 require 'appscript'
-require 'chunky_png'
 require 'pstore'
-require_relative 'types'
+['types'].each { |req| require "#{File.dirname(__FILE__)}/#{req}" }
 
 # iTunes Controller
 class Ituner
@@ -28,7 +27,7 @@ class Ituner
     @sequence = deejays
     
     # Queue them up
-    host.play upcoming.playlists.first, once: true
+    host.play upcoming.playlists.first, :once => true
   end
   
   # The current DJ
@@ -53,7 +52,7 @@ class Ituner
     # DJ index is a very low number (i.e. < 100). We use it to get a 
     # reasonably consistent sort for new DJs 
     @store.transaction(true) do
-      result.sort_by! { |dj| @store[dj.id].nil? ? Time.now.utc : @store[dj.id].last }
+      result = result.sort_by { |dj| @store[dj.id].nil? ? Time.now.utc : @store[dj.id].last }
     end
     result
   end
@@ -83,7 +82,7 @@ class Ituner
 
   def stop
     @state = :stop
-    @host.stop
+    @host.pause
   end
   
   def start
@@ -163,10 +162,16 @@ class ITuneJockey10_5
     
     # Get a handle to scripting events
     se = Appscript.app('System Events').processes['iTunes']
+        
+    # Is the iTunes window on? It can be running with no windows
+    unless @host.browser_windows[1].visible.get
+      STDOUT.puts "WARN: The iTunes Window wasn't open. Try to keep a full iTunes window open (it's ok in the background)."
+      @host.browser_windows[1].visible.set(true)
+    end
     
     # Is the host minimized? That will break the interaction
     if @host.browser_windows[1].minimized.get
-      STDOUT.puts "WARN: The iTunes Window was in 'Mini-Player' mode. We're going to maximize it. For best reliability try to keep the big iTunes window Open."
+      STDOUT.puts "WARN: The iTunes Window was in 'Mini-Player' mode. We're going to Zoom it. For best reliability try to keep the big iTunes window Open (it's ok in the background)."
       @host.browser_windows[1].minimized.set(false)
     end
     # Activation a bit annoying, so disabled for now. Suspect
@@ -174,24 +179,32 @@ class ITuneJockey10_5
     # for pure server environments.
     # @host.browser_windows[1].activate 
     
-    # Get the rows on the splitter window on the left
+    # Get the rows on the splitter window on the left of the main iTunes
+    # window (ignore browser art & the equalizer windows).
     # This contains the "Shared Libaries" that we'll iterate through
-    rows = se.windows[1].scroll_areas[2].outlines[1].rows.get
+    window = se.windows['iTunes']    
+    rows = window.scroll_areas[2].outlines[1].rows.get
     
     # Go through the rows detecting the rows that represent Shared Libraries
     # Generally they come after a row named SHARED. They end by GENIUS or
     # PLAYLISTS. We also need to check that the Shared Library isn't open
     # as the entries will show up as well (e.g. 'Music' or 'Radio' inside 
     # 'Steve's Library')
-    results = nil    
+    results = []
+    triggered = false    
     rows.each do |row|
       name = row.static_texts[1].name.get
-      # break if ['GENIUS', 'PLAYLISTS'].include?(name)      
-      results = [] if name == 'SHARED' 
+      break if ['GENIUS', 'PLAYLISTS'].include?(name)      
+      triggered ||= (name == 'SHARED')
       next if ['SHARED', 'Home Sharing'].include?(name)
       next unless ['0', '1'].include?(row.attributes['AXDisclosureLevel'].get.value.get.to_s)      
-      results << NamedWidget.new(name, row) unless results.nil?
+      results << NamedWidget.new(name, row) if triggered
     end
+    
+    # Register the number of shared libraries found
+    print "<#{results.length}>"
+    STDOUT.flush
+    
     return results    
   end
   

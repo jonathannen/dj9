@@ -1,4 +1,5 @@
 require 'base64'
+require 'chunky_png'
 
 # A
 # Representation of an iTunes Track
