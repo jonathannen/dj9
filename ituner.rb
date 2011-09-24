@@ -186,7 +186,7 @@ class ITuneJockey10_5
     results = nil    
     rows.each do |row|
       name = row.static_texts[1].name.get
-      break if ['GENIUS', 'PLAYLISTS'].include?(name)      
+      # break if ['GENIUS', 'PLAYLISTS'].include?(name)      
       results = [] if name == 'SHARED' 
       next if ['SHARED', 'Home Sharing'].include?(name)
       next unless ['0', '1'].include?(row.attributes['AXDisclosureLevel'].get.value.get.to_s)      
