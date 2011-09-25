@@ -67,8 +67,8 @@ class Track
   end
   
   def album_artwork_name
-    ["#{self.artist}-#{self.album}"].pack('m').tr("+/", "-_")[0..-2]
-    # Base64.urlsafe_encode64()
+    # ["#{self.artist}-#{self.album}"].pack('m').tr("+/", "-_")[0..-2]
+    Base64.urlsafe_encode64("#{self.artist}-#{self.album}")
   end
   
   # Cache the artwork. Currently only handles PNG versions

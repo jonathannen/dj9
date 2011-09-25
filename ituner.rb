@@ -48,9 +48,7 @@ class Ituner
       result << Deejay.new(src.index.get, src.name.get, src.name.get, lists, lists.first.tracks.get.map { |t| Track.new(t) })
     end
     
-    # Sort the DJs by the last time they were played    
-    # DJ index is a very low number (i.e. < 100). We use it to get a 
-    # reasonably consistent sort for new DJs 
+    # Sort the DJs by the last time they were played.
     @store.transaction(true) do
       result = result.sort_by { |dj| @store[dj.id].nil? ? Time.now.utc : @store[dj.id].last }
     end
@@ -116,15 +114,9 @@ class Ituner
   protected
   def cache_artwork
     # Cache images if available - and they exist
-    candidates = []
+    print '['
     @sequence.map(&:tracks).flatten.each do |track|
       next if track.artwork? || track.artwork.nil? # Artwork already there, or there is none to get
-      candidates << track
-    end
-    return if candidates.empty? # Nothing to get
-    
-    print '['
-    candidates.each do |track|
       print '.'
       STDOUT.flush
       track.cache_artwork
