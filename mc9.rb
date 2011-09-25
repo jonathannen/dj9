@@ -34,7 +34,9 @@ class Mc9
     protected    
     def scan(cache)
       begin
+        print "?"
         self.ituner.think(cache)
+        puts "!"
       rescue Appscript::CommandError => ce       
         message = case 
         when (ce.error_number == -1719) && (ce.error_message =~ /assistive devices/) then 
