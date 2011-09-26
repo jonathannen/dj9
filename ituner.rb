@@ -167,6 +167,10 @@ class ITuneJockey10_5
       STDOUT.puts "WARN: The iTunes Window was in 'Mini-Player' mode. We're going to Zoom it. For best reliability try to keep the big iTunes window Open (it's ok in the background)."
       @host.browser_windows[1].minimized.set(false)
     end
+    
+    # Clear down dialogs
+    clear_dialogs
+    
     # Activation a bit annoying, so disabled for now. Suspect
     # it improves the reliability, however. Might be an option 
     # for pure server environments.
@@ -202,7 +206,6 @@ class ITuneJockey10_5
     # Why the clear dialogs and the sleep? If the user has had more than
     # 5 clients a dialog pops up saying this library isn't accessible.
     # This code makes sure those dialogs are all cleared.
-    clear_dialogs
     lib.widget.select
     sleep 1
     clear_dialogs
