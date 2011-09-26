@@ -216,7 +216,7 @@ class ITuneJockey10_5
   def clear_dialogs
     # Dialogs are generally windows with no title
     # For some reason model property doesn't work
-    system_events.windows.each do |window|
+    system_events.windows.get.each do |window|
       window.key_code(36) if window.name.get.nil? # Send "Enter" to clear the dialog
     end
   end
