@@ -4,7 +4,7 @@ require 'pstore'
 
 # iTunes Controller
 class Ituner
-  DATABASE_VERSION = 1
+  DATABASE_VERSION = 2
   attr_reader :host, :jockey, :state
   
   def initialize
