@@ -50,7 +50,7 @@ class Ituner
     
     # Sort the DJs by the last time they were played.
     @store.transaction(true) do
-      result = result.sort_by { |dj| @store[dj.id].nil? ? Time.now.utc : @store[dj.id].last }
+      result = result.sort_by { |dj| (@store[dj.id].nil? ? Time.now.utc : @store[dj.id].last).to_i * -1 }
     end
     result
   end
