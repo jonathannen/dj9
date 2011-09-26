@@ -4,7 +4,7 @@ require 'pstore'
 
 # iTunes Controller
 class Ituner
-  DATABASE_VERSION = 2
+  DATABASE_VERSION = 3
   attr_reader :host, :jockey, :state
   
   def initialize
@@ -49,8 +49,9 @@ class Ituner
     end
     
     # Sort the DJs by the last time they were played.
-    @store.transaction(true) do
-      result = result.sort_by { |dj| (@store[dj.id].nil? ? Time.now.utc : @store[dj.id].last).to_i * -1 }
+    @store.transaction do
+      result.each { |dj| @store[dj.id] = PlayRecord.new(dj.id, Time.now.utc, 0) if @store[dj.id].nil? }
+      result = result.sort_by { |dj| @store[dj.id].last }
     end
     result
   end
