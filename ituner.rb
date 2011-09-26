@@ -149,11 +149,12 @@ class ITuneJockey10_5
   def initialize(host)
     @host = host
   end 
+  
   def scan
     @host.run # Make sure iTunes is running
     
     # Get a handle to scripting events
-    se = Appscript.app('System Events').processes['iTunes']
+    se = system_events
         
     # Is the iTunes window on? It can be running with no windows
     unless @host.browser_windows[1].visible.get
@@ -198,6 +199,26 @@ class ITuneJockey10_5
   # Called when the iTuner actually wants to activate / turn on this
   # element.
   def activate(lib)
+    # Why the clear dialogs and the sleep? If the user has had more than
+    # 5 clients a dialog pops up saying this library isn't accessible.
+    # This code makes sure those dialogs are all cleared.
+    clear_dialogs
     lib.widget.select
+    sleep 1
+    clear_dialogs
   end
+  
+  protected
+  def system_events
+    Appscript.app('System Events').processes['iTunes']
+  end
+  
+  def clear_dialogs
+    # Dialogs are generally windows with no title
+    # For some reason model property doesn't work
+    system_events.windows.each do |window|
+      window.key_code(36) if window.name.get.nil? # Send "Enter" to clear the dialog
+    end
+  end
+  
 end
