@@ -4,7 +4,7 @@ require 'pstore'
 
 # iTunes Controller
 class Ituner
-  DATABASE_VERSION = 1
+  DATABASE_VERSION = 3
   attr_reader :host, :jockey, :state
   
   def initialize
@@ -48,11 +48,10 @@ class Ituner
       result << Deejay.new(src.index.get, src.name.get, src.name.get, lists, lists.first.tracks.get.map { |t| Track.new(t) })
     end
     
-    # Sort the DJs by the last time they were played    
-    # DJ index is a very low number (i.e. < 100). We use it to get a 
-    # reasonably consistent sort for new DJs 
-    @store.transaction(true) do
-      result = result.sort_by { |dj| @store[dj.id].nil? ? Time.now.utc : @store[dj.id].last }
+    # Sort the DJs by the last time they were played.
+    @store.transaction do
+      result.each { |dj| @store[dj.id] = PlayRecord.new(dj.id, Time.now.utc, 0) if @store[dj.id].nil? }
+      result = result.sort_by { |dj| @store[dj.id].last }
     end
     result
   end
@@ -116,15 +115,9 @@ class Ituner
   protected
   def cache_artwork
     # Cache images if available - and they exist
-    candidates = []
+    print '['
     @sequence.map(&:tracks).flatten.each do |track|
       next if track.artwork? || track.artwork.nil? # Artwork already there, or there is none to get
-      candidates << track
-    end
-    return if candidates.empty? # Nothing to get
-    
-    print '['
-    candidates.each do |track|
       print '.'
       STDOUT.flush
       track.cache_artwork
@@ -157,11 +150,12 @@ class ITuneJockey10_5
   def initialize(host)
     @host = host
   end 
+  
   def scan
     @host.run # Make sure iTunes is running
     
     # Get a handle to scripting events
-    se = Appscript.app('System Events').processes['iTunes']
+    se = system_events
         
     # Is the iTunes window on? It can be running with no windows
     unless @host.browser_windows[1].visible.get
@@ -174,6 +168,10 @@ class ITuneJockey10_5
       STDOUT.puts "WARN: The iTunes Window was in 'Mini-Player' mode. We're going to Zoom it. For best reliability try to keep the big iTunes window Open (it's ok in the background)."
       @host.browser_windows[1].minimized.set(false)
     end
+    
+    # Clear down dialogs
+    clear_dialogs
+    
     # Activation a bit annoying, so disabled for now. Suspect
     # it improves the reliability, however. Might be an option 
     # for pure server environments.
@@ -206,6 +204,25 @@ class ITuneJockey10_5
   # Called when the iTuner actually wants to activate / turn on this
   # element.
   def activate(lib)
+    # Why the clear dialogs and the sleep? If the user has had more than
+    # 5 clients a dialog pops up saying this library isn't accessible.
+    # This code makes sure those dialogs are all cleared.
     lib.widget.select
+    sleep 1
+    clear_dialogs
   end
+  
+  protected
+  def system_events
+    Appscript.app('System Events').processes['iTunes']
+  end
+  
+  def clear_dialogs
+    # Dialogs are generally windows with no title
+    # For some reason model property doesn't work
+    system_events.windows.get.each do |window|
+      window.key_code(36) if window.name.get.nil? # Send "Enter" to clear the dialog
+    end
+  end
+  
 end
