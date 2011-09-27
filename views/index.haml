@@ -44,21 +44,18 @@
         
         - # Display the DJ track
         %div.tracks
-          - dj.tracks.each do |track|
-          
-            - name = track.name
-  
-            -# color = rgb.map { |v| "%02x" % [(v * (1 - rand/5)), 255].min }.join
-            - style = "background: ##{color}; border-right: 1px solid ##{darkcolor}; border-top: 10px solid ##{darkcolor}; color: ##{textcolor};"
-            %div.track{:class => track.id == @current_id ? 'playing' : '', :title => "#{name} -of- #{track.album} -by- #{track.artist}"}
-              
-              
-              %img.artwork{:src => track.artwork_path, :height => 200, :width => 200}
-              %div.trackMeta
-                %h2.trackName= name
-                %h3.trackArtist= track.artist
-                %h4.trackAlbum= track.album
+          %div.trackWrap
+            - dj.tracks.each do |track|
             
-      %div.controls
-        %span *DJ9
-        %p Goodbye
+              - name = track.name
+    
+              -# color = rgb.map { |v| "%02x" % [(v * (1 - rand/5)), 255].min }.join
+              - style = "background: ##{color}; border-right: 1px solid ##{darkcolor}; border-top: 10px solid ##{darkcolor}; color: ##{textcolor};"
+              %div.track{:class => track.id == @current_id ? 'playing' : '', :title => "#{name} -of- #{track.album} -by- #{track.artist}"}
+                %img.artwork{:src => track.artwork_path, :height => 200, :width => 200}
+                %div.trackMeta
+                  %h2.trackName= name
+                  %h3.trackArtist= track.artist
+                  %h4.trackAlbum= track.album
+            
+      %div#footer
