@@ -2,8 +2,8 @@
 %html
   %head
     %title Dee Jay Nine
-    %link{:href => '/reset.css', :media => 'screen', :rel => 'stylesheet', :type => 'text/css'}
-    %link{:href => '/dj9.css', :media => 'screen', :rel => 'stylesheet', :type => 'text/css'}
+    %link{:href => 'screen.less', :media => 'screen', rel: 'stylesheet/less', :type => 'text/css'}
+    %script{:type => 'text/javascript', :src => 'scripts/less-1.1.3.min.js'}
   
     -# iPad, iPhone and other viewport-aware mobile devices
     %meta{:name => 'viewport', :content => 'user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0'}
@@ -35,22 +35,29 @@
         - textcolor = darkcolor
 
         - style = "background: ##{color}; border-right: 1px solid ##{darkcolor}; border-top: 10px solid ##{darkcolor};"        
-        %div.dj{:style => style}
+        //%div.dj{:style => style} --commented this out
+        %div.dj
           %span
             DJ 
             = name
           %time= dj.time
         
         - # Display the DJ track
-        - dj.tracks.each do |track|
-          - name = track.name
-
-          -# color = rgb.map { |v| "%02x" % [(v * (1 - rand/5)), 255].min }.join
-          - style = "background: ##{color}; border-right: 1px solid ##{darkcolor}; border-top: 10px solid ##{darkcolor}; color: ##{textcolor};"
-          %div.track{:class => track.id == @current_id ? 'playing' : '', :style => style, :title => "#{name} -of- #{track.album} -by- #{track.artist}"}
-            
-            %span= name   
-            %img.artwork{:src => track.artwork_path, :height => 160, :width => 160}
+        %div.tracks
+          - dj.tracks.each do |track|
+          
+            - name = track.name
+  
+            -# color = rgb.map { |v| "%02x" % [(v * (1 - rand/5)), 255].min }.join
+            - style = "background: ##{color}; border-right: 1px solid ##{darkcolor}; border-top: 10px solid ##{darkcolor}; color: ##{textcolor};"
+            %div.track{:class => track.id == @current_id ? 'playing' : '', :title => "#{name} -of- #{track.album} -by- #{track.artist}"}
+              
+              
+              %img.artwork{:src => track.artwork_path, :height => 200, :width => 200}
+              %div.trackMeta
+                %h2.trackName= name
+                %h3.trackArtist= track.artist
+                %h4.trackAlbum= track.album
             
       %div.controls
         %span *DJ9

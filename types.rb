@@ -49,21 +49,21 @@ class Track
   end
   
   def artwork?
-    filename = File.dirname(__FILE__) + "/public/art/T#{self.id}_160x160.png"
+    filename = File.dirname(__FILE__) + "/public/art/T#{self.id}_200x200.png"
     File.exists?(filename)
   end
   
   def artwork_path
-    artwork? ? "/art/T#{self.id}_160x160.png" : '/pixel.png'
+    artwork? ? "/art/T#{self.id}_200x200.png" : '/pixel.png'
   end  
   
   def album_artwork?
-    filename = File.dirname(__FILE__) + "/public/art/A#{album_artwork_name}_160x160.png"
+    filename = File.dirname(__FILE__) + "/public/art/A#{album_artwork_name}_200x200.png"
     File.exists?(filename)
   end
   
   def album_artwork_path
-    album_artwork? ? "/art/A#{album_artwork_name}_160x160.png" : '/pixel.png'
+    album_artwork? ? "/art/A#{album_artwork_name}_200x200.png" : '/pixel.png'
   end
   
   def album_artwork_name
@@ -74,13 +74,13 @@ class Track
   # Cache the artwork. Currently only handles PNG versions
   def cache_artwork
     filename = Track.artwork_directory + "/T#{self.id}.png"
-    thumb = Track.artwork_directory + "/T#{self.id}_160x160.png"    
+    thumb = Track.artwork_directory + "/T#{self.id}_200x200.png"    
     data = self.artwork.data
         
     # Write the track level data
     write_artwork(data, filename, thumb)
     # Also write the album data
-    write_artwork(data, Track.artwork_directory + "/A#{album_artwork_name}.png", Track.artwork_directory + "/A#{album_artwork_name}_160x160.png" )    
+    write_artwork(data, Track.artwork_directory + "/A#{album_artwork_name}.png", Track.artwork_directory + "/A#{album_artwork_name}_200x200.png" )    
     return thumb
   end
   
@@ -95,7 +95,7 @@ class Track
 
     # The thumbnail version
     if self.artwork.format.to_s =~ /PNG/ # We only want PNGs for now 
-      ChunkyPNG::Image.from_datastream(ChunkyPNG::Datastream.from_blob(data)).resample_nearest_neighbor!(160, 160).save(thumb)
+      ChunkyPNG::Image.from_datastream(ChunkyPNG::Datastream.from_blob(data)).resample_nearest_neighbor!(200, 200).save(thumb)
     else
       File.open(thumb, 'wb') { |f| f.write(data) }      
     end
