@@ -12,7 +12,7 @@ class Ituner
     @host.run
     @jockey = ITuneJockey10_5.new(@host)
     @store = PStore.new("tmp/data_#{DATABASE_VERSION}.pstore")
-    @state = :run    
+    @state = :run
   end
   
   # -- Playlist and Sources
@@ -77,6 +77,18 @@ class Ituner
   def now_playing
     return nil unless playing?
     Track.new(host.current_track.get)
+  end
+  
+  def current_pos
+    @host.player_position.get
+  end
+  
+  def current_duration
+    @host.current_track.duration.get
+  end
+  
+  def track_time 
+    @host.current_track.time.get
   end
 
   def stop

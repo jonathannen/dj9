@@ -15,6 +15,9 @@ class Dj9 < Sinatra::Base
   get '/' do
     @current = ituner.now_playing
     @current_id = @current.nil? ? '' : @current.id
+    @pos = ituner.current_pos
+    @duration = ituner.current_duration
+    @time = ituner.track_time
     @state = ituner.state
     
     @seq = ituner.sequence.clone

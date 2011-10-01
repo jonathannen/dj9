@@ -4,25 +4,34 @@
     %title Dee Jay Nine
     %link{:href => 'screen.less', :media => 'screen', rel: 'stylesheet/less', :type => 'text/css'}
     %script{:type => 'text/javascript', :src => 'scripts/less-1.1.3.min.js'}
+    %script{:type => 'text/javascript', :src => 'https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js'}
+    %script{:type => 'text/javascript', :src => 'scripts/player.js'}
   
     -# iPad, iPhone and other viewport-aware mobile devices
     %meta{:name => 'viewport', :content => 'user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0'}
-  
+    :javascript
+      // some global variables for the player progress bar
+      var current_state = '#{@state}';
+      var current_pos = #{@pos};
+      var current_duration = #{@duration};   
   %body
   
     %div#page.container              
+      %p Welcome
+      %span DJ9*
       
-      %div.controls
-        %p Welcome
-        %span DJ9*
-      %div.controls
+      %div#controls
         - if @state == :run || !@current.nil?
-          %a{:href => '/pause'} &quot; PAUSE      
+          %a#ctrlPause{:href => '/pause'} PAUSE      
         - else
-          %a{:href => '/run'} &gt; RUN      
+          %a#ctrlPlay{:href => '/run'} PLAY    
+        
+        %div#progress
           
-        %a{:href => '/next'} &rarr; next      
-        %a{:href => '/advance'} &rArr; advance
+        %a#ctrlSkip{:href => '/next'} SKIP     
+        %a#ctrlNext{:href => '/advance'} NEXT DJ
+        
+      
       
       - @seq.each do |dj|
           
