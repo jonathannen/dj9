@@ -16,9 +16,7 @@
       var current_duration = #{@duration};   
   %body
   
-    %div#page.container              
-      %p Welcome
-      %span DJ9*
+    %div#page.container
       
       %div#controls
         - if @state == :run || !@current.nil?
@@ -31,8 +29,6 @@
         %a#ctrlSkip{:href => '/next'} SKIP     
         %a#ctrlNext{:href => '/advance'} NEXT DJ
         
-      
-      
       - @seq.each do |dj|
           
         -# Display the DJ 
@@ -46,9 +42,7 @@
         - style = "background: ##{color}; border-right: 1px solid ##{darkcolor}; border-top: 10px solid ##{darkcolor};"        
         //%div.dj{:style => style} --commented this out
         %div.dj
-          %span
-            DJ 
-            = name
+          %span= name
           %time= dj.time
         
         - # Display the DJ track
